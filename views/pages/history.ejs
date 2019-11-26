@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Convert</title>
+    <% include ../partials/header.ejs %>
+</head>
+
+<body>
+    <% include ../partials/nav.ejs %>
+    <form action="/converting"method="POST">
+      <!--From-->
+    <!--Date picker-->
+    <div class="md-form"style="padding: 20px">
+            <input name="toDate" placeholder="Selected date" type="date" id="date-picker-example" class="form-control datepicker">
+            <label  for="date-picker-example">Select date</label>
+          </div>
+      
+            <div class="form-group"style="padding: 20px">
+              <label for="fromCurrencySelection">From currency</label>
+            <select name="fromConvert" class="form-control" id="fromCurrencySelection">
+              <option>JPY</option>
+              <option>EUR</option>
+              <option>MYR</option>
+              <option>CNY</option>
+              <option>USD</option>
+              <option>SGD</option>
+              <option>AUD</option>
+              <option>BTC</option>
+              <option>ETH</option>
+
+            </select>
+            </div>
+                
+            <!--To--> 
+            <div class="form-group"style="padding: 20px">
+              <label for="toCurrencySelection">To currency</label>
+              <select name="toConvert" class="form-control" id="toCurrencySelection">
+                  <option>JPY</option>
+                  <option>EUR</option>
+                  <option>MYR</option>
+                  <option>CNY</option>
+                  <option>USD</option>
+                  <option>SGD</option>
+                  <option>AUD</option>
+                  <option>BTC</option>
+                  <option>ETH</option>
+              </select>
+            </div>
+              
+            <!--Amount-->
+            <div class="form-group"style="padding: 20px">
+              <label for="amountEntered">Amount</label>
+              <input name="toAmount" type="number" class="form-control" id="amountEntered" placeholder="1000">
+            </div>
+        
+            <!--Sumbit button-->
+            <div class="form-group">
+              <button type="submitButton" class="btn btn-primary">Submit</button>
+            </div>
+          </form>
+      
+          <!--Result-->
+        <h1>Results</h1>
+        <p><%=result%></p>
+</body>
+
+</html>
