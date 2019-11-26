@@ -112,6 +112,8 @@ app.get("/api/rates/add",(req,res)=>{
   let exchangeRateQuery
   let coinAPIBTCQuery
   let coinAPIETHQuery
+  let btcRates=0.0001412570791705198613436769
+  let ethRates=0.0068902629887775894208328582
   if(querydate==null){
     var today = new Date();
     querydate = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + (today.getDate());
@@ -130,8 +132,7 @@ app.get("/api/rates/add",(req,res)=>{
     coinAPIETHQuery = `https://rest.coinapi.io/v1/exchangerate/${base}/ETH?time=${querydate}&apikey=${coinAPIKey}`
   }
   //else get the lastest rates from api and save it to db
-  let btcRates
-  let ethRates
+
 axios.get(coinAPIBTCQuery)
 .then(response=>{
   btcRates = response.data.rate
@@ -147,9 +148,9 @@ axios.get(coinAPIETHQuery)
 .catch(error=>{
   console.log("Error on api rates: "+ error)
 })
+
 axios.get(exchangeRateQuery)
 .then (response =>{
-  let rate = {"BTC":btcRates,"ETH":ethRates}
   let example = response.data.rates
   example.BTC = btcRates
   example.ETH = ethRates
@@ -217,8 +218,8 @@ if (base==null) base=baseCurrency
 if (querydate==null){
   //check mongodb for today data
   var today = new Date();
-  querydate = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + (today.getDate()-1);
-  var todaydate = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + (today.getDate()-1);
+  querydate = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + (today.getDate());
+  var todaydate = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + (today.getDate());
 }
 
 //search
