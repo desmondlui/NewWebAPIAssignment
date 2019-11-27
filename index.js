@@ -1,11 +1,8 @@
 const express = require('express')
 const path = require('path')
 const axios = require("axios")
-const mongoose = require("mongoose")
-const router = express.router
 const PORT = process.env.PORT || 5000
 const app = express();
-var index = require('./')
 const Rates = require('./Rates')
 const bodyParser = require("body-parser")
 
@@ -14,7 +11,6 @@ app.use(bodyParser.urlencoded({extended:true}));
 
 const coinAPIKey = "121A0A85-0D3B-4F01-8D29-DF60A4638FDB"
 const baseCurrency = "USD"
-const cryptoRange = ["BTC","ETH","LTC","ZEC","XRP"]
 //note that exchangeAPI.io does not require API key
 
 app.use(express.static(path.join(__dirname, 'public')))
@@ -23,10 +19,8 @@ app.set('view engine', 'ejs')
 app.get('/', (req, res) => res.render('pages/index'))
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
 
-
 //convert the value
 app.get("/api/convert",(req,res)=>{
-  
     let base = req.query.base;
     let to = req.query.to;
     let amount = req.query.amount
@@ -61,20 +55,6 @@ app.get("/api/convert",(req,res)=>{
       console.log(error)
       res.status(400).json(response)
     })
-
-    /*
-    const query = `http://api.exchangeratesapi.io/latest?base=${base}`
-    axios.get(query)
-    .then(response =>{
-        console.log(response.data.rates.USD);
-        let output = amount * response.data.rates[to];
-        //replace CAD if found the solution
-        res.send("Amount from " + amount + " " + base + " to " + to + " is: " + output);
-    })
-    .catch(error =>{
-        console.log("error from convert" + error);
-    })
-    */
 })
 
 //rates include rates history search
@@ -87,9 +67,6 @@ app.get("/api/rates/search",(req,res)=>{
     var today = new Date();
     querydate = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + (today.getDate()+1);
   }
-  let exchangeRateQuery
-  let coinAPIBTCQuery
-  let coinAPIETHQuery
   //check mongodb for today data
   //search
   Rates.find({'date':querydate})
@@ -112,8 +89,6 @@ app.get("/api/rates/add",(req,res)=>{
   let exchangeRateQuery
   let coinAPIBTCQuery
   let coinAPIETHQuery
-  let btcRates=0.0001412570791705198613436769
-  let ethRates=0.0068902629887775894208328582
   if(querydate==null){
     var today = new Date();
     querydate = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + (today.getDate());
@@ -133,41 +108,43 @@ app.get("/api/rates/add",(req,res)=>{
   }
   //else get the lastest rates from api and save it to db
 
-axios.get(coinAPIBTCQuery)
-.then(response=>{
-  btcRates = response.data.rate
-})
-.catch(error=>{
-  console.log("Error on api rates: "+ error)
-})
+  let exchangeRate
+  let exchangeBase 
+  let exchangeDate
+  axios.get(exchangeRateQuery)
+  .then (response =>{
+    exchangeRate = response.data.rates
+    exchangeBase = response.data.base
+    exchangeDate = response.data.date  
+  })
+  .catch(error =>{
+    console.log("Error at rates: "+error);
+  })
 
-axios.get(coinAPIETHQuery)
-.then(response=>{
-  ethRates = response.data.rate
-})
-.catch(error=>{
-  console.log("Error on api rates: "+ error)
-})
-
-axios.get(exchangeRateQuery)
-.then (response =>{
-  let example = response.data.rates
-  example.BTC = btcRates
-  example.ETH = ethRates
-  let rates = new Rates({
-      fromCurrency:response.data.base,
-      toCurrency:example,
-      date:response.data.date,
+  axios.get(coinAPIETHQuery)
+  .then(response=>{
+    exchangeRate.ETH = response.data.rate
+    axios.get(coinAPIBTCQuery)
+  .then(response=>{
+    exchangeRate.BTC = response.data.rate
+    let rates = new Rates({
+      fromCurrency:exchangeBase,
+      toCurrency:exchangeRate,
+      date:exchangeDate,
   });
-  rates.save().then(result=>{
+    rates.save().then(result=>{
       console.log("Success" + result);
       console.log("Heyhey")
       res.send(result)
   })
+  .catch(error=>{
+    console.log("Error on api rates: "+ error)
+    })
+  })
 })
-.catch(error =>{
-  console.log("Error at rates: "+error);
-})  
+.catch(error=>{
+  console.log("Error on api rates: "+ error)
+})
 })
 
 //get all data from mongodb
@@ -200,7 +177,6 @@ app.get("/convert",(req,res)=>{
   res.render('pages/convert',{result:""});
 })
 app.get("/index",(req,res)=>{
-  
   res.render('pages/index');
 })
 app.get("/history",(req,res)=>{
