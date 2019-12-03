@@ -31,7 +31,9 @@ app.get("/api/convert",(req,res)=>{
   if (querydate==null){
     //check mongodb for today data
     var today = new Date();
-    querydate = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + (today.getDate()-1);
+    var thismonth = (today.getMonth() < 10 ? '0' : '') + (today.getMonth()+1)
+    var thisday = (today.getDate() < 10 ? '0' : '') + (today.getDate()-1)
+    querydate = today.getFullYear() + "-" + thismonth + "-" + thisday;
   }
   
   //search
@@ -187,17 +189,18 @@ app.post("/converting",(req,res)=>{
   let to = req.body.toConvert;
   let amount = req.body.toAmount;
   let querydate = req.body.toDate;
-console.log(querydate)
 
+var todaydate
   //check if got based else use baseCurrency(USD as default)
 if (base==null) base=baseCurrency
 if (querydate==null){
-  //check mongodb for today data
   var today = new Date();
-  querydate = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + (today.getDate());
-  var todaydate = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + (today.getDate());
+  var thismonth = (today.getMonth() < 10 ? '0' : '') + (today.getMonth()+1)
+  var thisday = (today.getDate() < 10 ? '0' : '') + (today.getDate()-1)
+  querydate = today.getFullYear() + "-" + thismonth + "-" + thisday;
+  console.log(querydate)
+  todaydate = querydate
 }
-
 //search
 Rates.find({'date':querydate})
   .sort([['_id']])
@@ -205,7 +208,7 @@ Rates.find({'date':querydate})
   //console.log(response)
   //res.status(200).json(response)
   let output
-  console.log(response[0])
+  console.log(response.data)
   if(base == response[0].fromCurrency){
     output = (amount*response[0].toCurrency[to])
   }else if(to == response[0].fromCurrency){
@@ -213,6 +216,7 @@ Rates.find({'date':querydate})
   }else{
     output = amount/response[0].toCurrency[base]*response[0].toCurrency[to]
   }
+
   if(querydate==todaydate){
     res.render("pages/convert",{
       result:"Amount from " + amount + " " + base + " to " + to + " is: " + output
@@ -222,11 +226,11 @@ Rates.find({'date':querydate})
       result:"Amount from " + amount + " " + base + " to " + to + " is: " + output
     })
   }
-  
   })
   .catch(error=>{
     console.log(error)
-    res.status(400).json(response)
+    //res.status(400).json(response)
   })
 })
+
  
